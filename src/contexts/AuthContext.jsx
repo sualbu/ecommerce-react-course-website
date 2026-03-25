@@ -1,8 +1,14 @@
-import { createContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
-export const AuthContext = createContext(null);
+const AuthContext = createContext(null);
 
-function AuthProvider({ children }) {
+export function useAuth() {
+	const context = useContext(AuthContext);
+
+	return context;
+}
+
+export default function AuthProvider({ children }) {
 	const userCurr = localStorage.getItem('currentUserEmail');
 	const [user, setUser] = useState(userCurr ? { email: userCurr } : null);
 
@@ -40,11 +46,11 @@ function AuthProvider({ children }) {
 		setUser(null);
 	};
 
-	const getUsers = () => {
+	function getUsers() {
 		return JSON.parse(localStorage.getItem('users') || '[]');
-	};
+	}
 
-	const getUser = (email, password = null) => {
+	function getUser(email, password = null) {
 		return getUsers().find((user) => {
 			if (password) {
 				return user.email === email && user.password === password;
@@ -52,7 +58,7 @@ function AuthProvider({ children }) {
 				return user.email === email;
 			}
 		});
-	};
+	}
 
 	return (
 		<AuthContext.Provider value={{ user, signUp, logIn, logOut }}>
@@ -60,5 +66,3 @@ function AuthProvider({ children }) {
 		</AuthContext.Provider>
 	);
 }
-
-export default AuthProvider;
