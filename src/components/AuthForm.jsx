@@ -1,0 +1,97 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '../contexts/AuthContext.js';
+import { Link } from 'react-router-dom';
+
+function AuthForm({ mode }) {
+	const navigate = useNavigate();
+	const [error, setError] = useState(null);
+	const { signUp, logIn } = useAuth();
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm();
+
+	//	Local variables
+	const isLogin = mode === 'login';
+	const pageTitle = isLogin ? 'Log In' : 'Sign Up';
+	const other = isLogin ? "Don't have an account?" : 'Already have an account?';
+	const otherLabel = isLogin ? 'Sign Up' : 'Log In';
+	const link = isLogin ? '/auth-signup' : '/auth-login';
+
+	function handleMySubmit(data) {
+		const email = data.email;
+		const password = data.password;
+		const result = isLogin ? logIn(email, password) : signUp(email, password);
+
+		if (result.success === true) {
+			navigate('/');
+		}
+
+		if (result.success === false) {
+			setError(result.error);
+		}
+	}
+
+	return (
+		<div className="auth-container">
+			<h1 className="page-title">{pageTitle}</h1>
+			<form className="auth-form" onSubmit={handleSubmit(handleMySubmit)}>
+				{error && <div className="error-message">{error}</div>}
+				<div className="form-group">
+					<label className="form-label" htmlFor="email">
+						Email
+					</label>
+					<input
+						className="form-input"
+						type="email"
+						id="email"
+						{...register('email', { required: 'Email is required' })}
+					/>
+					{errors.email && (
+						<span className="form-error">{errors.email.message}</span>
+					)}
+				</div>
+				<div className="form-group">
+					<label className="form-label" htmlFor="password">
+						Password
+					</label>
+					<input
+						className="form-input"
+						type="password"
+						id="password"
+						{...register('password', {
+							required: 'Password is required',
+							minLength: {
+								value: 6,
+								message: 'Password must be at least 6 characters',
+							},
+							maxLength: {
+								value: 12,
+								message: 'Password must be no more than 12 characters',
+							},
+						})}
+					/>
+					{errors.password && (
+						<span className="form-error">{errors.password.message}</span>
+					)}
+				</div>
+				<button className="btn btn-primary btn-large" type="submit">
+					{mode === 'signup' ? 'Sign Up' : 'Log In'}
+				</button>
+			</form>
+			<div className="auth-switch">
+				<p>
+					{other}
+					<Link className="auth-link" to={link} style={{ marginLeft: '10px' }}>
+						{otherLabel}
+					</Link>
+				</p>
+			</div>
+		</div>
+	);
+}
+
+export default AuthForm;
